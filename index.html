@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Diabetes Prediction</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .wrapper {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+            max-width: 900px;
+        }
+        .image-container img {
+            width: 200px;
+            height: auto;
+            border-radius: 10px;
+        }
+        .container {
+            text-align: center;
+            width: 500px; /* Increased width */
+            padding: 30px; /* Added more padding */
+            width: 100%;
+        }
+        h1 {
+            font-size: 22px;
+            margin-bottom: 20px;
+            color: #333;
+        }
+        .form-group {
+            margin-bottom: 15px;
+            text-align: left;
+        }
+        .form-group label {
+            display: block;
+            font-size: 14px;
+            font-weight: bold;
+            margin-bottom: 5px;
+            color: #555;
+        }
+        .form-group input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+        button {
+            width: 100%;
+            padding: 10px;
+            background: #007bff;
+            border: none;
+            color: white;
+            font-size: 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.3s ease-in-out;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        .message-box {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
+            text-align: center;
+            display: none;
+            width: 30%;
+        }
+        .message-box p {
+            font-size: 16px;
+            margin: 0 0 15px;
+        }
+        .close-btn {
+            background: red;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="wrapper">
+        <div class="image-container">
+            <img src="D:\Diabetes_prediction\diabetes_Image.png" alt="Diabetes Prediction">
+        </div>
+        <div class="container">
+            <h1>Diabetes Prediction</h1>
+            <form id="predictionForm">
+                <div class="form-group">
+                    <label for="pregnancies">Pregnancies (Number of times pregnant):</label>
+                    <input type="number" id="pregnancies" name="pregnancies" required>
+                </div>
+                <div class="form-group">
+                    <label for="glucose">Glucose (mg/dL):</label>
+                    <input type="number" id="glucose" name="glucose" required>
+                </div>
+                <div class="form-group">
+                    <label for="bloodPressure">Blood Pressure (mm Hg):</label>
+                    <input type="number" id="bloodPressure" name="bloodPressure" required>
+                </div>
+                <div class="form-group">
+                    <label for="skinThickness">Skin Thickness (mm):</label>
+                    <input type="number" id="skinThickness" name="skinThickness" required>
+                </div>
+                <div class="form-group">
+                    <label for="insulin">Insulin (µU/mL):</label>
+                    <input type="number" id="insulin" name="insulin" required>
+                </div>
+                <div class="form-group">
+                    <label for="bmi">BMI (kg/m²):</label>
+                    <input type="number" step="0.1" id="bmi" name="bmi" required>
+                </div>
+                <div class="form-group">
+                    <label for="diabetesPedigreeFunction">Diabetes Pedigree Function (No unit):</label>
+                    <input type="number" step="0.001" id="diabetesPedigreeFunction" name="diabetesPedigreeFunction" required>
+                </div>
+                <div class="form-group">
+                    <label for="age">Age (Years):</label>
+                    <input type="number" id="age" name="age" required>
+                </div>
+                <button type="submit">Predict</button>
+            </form>
+        </div>
+    </div>
+    <div class="message-box" id="messageBox">
+        <p id="messageText"></p>
+        <button class="close-btn" onclick="closeMessage()">Close</button>
+    </div>
+    <script>
+        document.getElementById('predictionForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+            const formData = new FormData(event.target);
+            const data = {
+                data: [
+                    parseFloat(formData.get('pregnancies')),
+                    parseFloat(formData.get('glucose')),
+                    parseFloat(formData.get('bloodPressure')),
+                    parseFloat(formData.get('skinThickness')),
+                    parseFloat(formData.get('insulin')),
+                    parseFloat(formData.get('bmi')),
+                    parseFloat(formData.get('diabetesPedigreeFunction')),
+                    parseFloat(formData.get('age'))
+                ]
+            };
+
+            fetch('http://127.0.0.1:5000/predict', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data),
+            })
+            .then(response => response.json())
+            .then(data => {
+                const messageBox = document.getElementById('messageBox');
+                const messageText = document.getElementById('messageText');
+                messageText.textContent = data.prediction === 1
+                    ? 'The person has diabetes.'
+                    : 'The person does not have diabetes.';
+                messageBox.style.display = 'block';
+            })
+            .catch(error => {
+                console.error('Fetch Error:', error);
+            });
+        });
+
+        function closeMessage() {
+            document.getElementById('messageBox').style.display = 'none';
+        }
+    </script>
+</body>
+</html>
